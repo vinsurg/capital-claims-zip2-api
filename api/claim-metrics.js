@@ -60,6 +60,12 @@ module.exports = async function handler(req, res) {
     if (!/^\d{5}$/.test(zip) || !/^\d{4,5}$/.test(cpt)) {
       return res.status(400).json({ error: "bad params" });
     }
+if (debug) {
+  try {
+    const u = new URL(process.env.DATABASE_URL);
+    console.log("DB HOST:", u.hostname);
+  } catch {}
+}
 
     const client = await pool.connect();
     try {
