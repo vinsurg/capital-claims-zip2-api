@@ -6,7 +6,7 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false } // Supabase requires SSL
 });
 
-const MIN_N = 12;            // sample threshold
+const MIN_N = 3;            // sample threshold
 const MAX_RADIUS_ZIPS = 50;  // nearest ZIPs to scan in radius fallback
 
 function cors(res) {
