@@ -33,3 +33,4 @@ jobs:
         with:
           commit_message: "chore: update schema-lock.json"
           file_pattern: schema-lock.json
+        
