@@ -1,0 +1,36 @@
+name: Pull DB Schema
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  pull:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps
+        run: |
+          npm ci || npm i
+          npx --yes tsx --version || npm i -D tsx
+          npm pkg set scripts.schema:pull="tsx scripts/pull-schema.ts"
+          npm i pg -D
+
+      - name: Pull schema
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run schema:pull
+
+      - name: Commit schema-lock.json
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: update schema-lock.json"
+          file_pattern: schema-lock.json
