@@ -1,4 +1,3 @@
-# .github/workflows/pull-schema.yml
 name: Pull DB Schema
 
 on:
@@ -19,7 +18,7 @@ jobs:
             echo "DATABASE_URL secret is missing. Add it in: Settings > Secrets and variables > Actions"
             exit 2
           fi
-          echo "DATABASE_URL present. Not printing it because, security."
+          echo "DATABASE_URL present (hidden for security)."
 
       - name: Verify function exists (dockerized psql)
         env:
@@ -28,7 +27,7 @@ jobs:
           docker run --rm \
             -e DATABASE_URL="$DATABASE_URL" \
             postgres:16-alpine \
-            sh -lc 'psql "$DATABASE_URL" -Atc "select count(*) from information_schema.routines where routine_schema=''public'' and routine_name=''get_schema_snapshot'';"' \
+            sh -lc "psql \"$DATABASE_URL\" -Atc 'select count(*) from information_schema.routines where routine_schema=''public'' and routine_name=''get_schema_snapshot'';' " \
           | tee _count.txt
           if [ "$(cat _count.txt)" != "1" ]; then
             echo "Function public.get_schema_snapshot() not found. Did you run Step 1 on THIS Supabase project?"
@@ -44,9 +43,9 @@ jobs:
             -e DATABASE_URL="$DATABASE_URL" \
             -v "$GITHUB_WORKSPACE/out":/out \
             postgres:16-alpine \
-            sh -lc 'psql "$DATABASE_URL" -Atc "select public.get_schema_snapshot()::text;" > /out/schema-lock.raw.json'
+            sh -lc "psql \"$DATABASE_URL\" -Atc 'select public.get_schema_snapshot()::text;' > /out/schema-lock.raw.json"
           python3 - << 'PY'
-import json, sys
+import json
 with open('out/schema-lock.raw.json','r') as f:
     data = json.loads(f.read())
 with open('schema-lock.json','w') as f:
@@ -55,8 +54,7 @@ print('Wrote schema-lock.json')
 PY
 
       - name: Show sample output
-        run: |
-          head -n 30 schema-lock.json || true
+        run: head -n 30 schema-lock.json || true
 
       - name: Commit schema-lock.json
         uses: stefanzweifel/git-auto-commit-action@v5
